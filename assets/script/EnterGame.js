@@ -4,7 +4,8 @@ cc.Class({
     properties:
     {
         GamePlay: cc.Node,
-        Main:cc.Node
+        Main: cc.Node,
+        Prefab_item: cc.Prefab,
     },
 
     onLoad()
@@ -12,6 +13,7 @@ cc.Class({
         cc.log("onLoad");
         this.Main.active = true;
         this.GamePlay.active = false;
+        this.addItem();
     },
 
     start()
@@ -28,6 +30,22 @@ cc.Class({
         {
             this.Main.active = true;
             this.GamePlay.active = false;
+        }
+    },
+
+    addItem()
+    {
+        for (var i = 0; i < 3; i++)
+        {
+            for (var j = 0; j < 3; j++)
+            {
+                var node = cc.instantiate(this.Prefab_item);
+                node.parent = this.GamePlay;
+                node.width = 100;
+                node.height = 100;
+                node.x = (node.width + 5) * i;
+                node.y = (node.height + 5) * j;
+            }
         }
     }
     // update (dt) {},
