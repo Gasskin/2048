@@ -14,7 +14,6 @@ cc.Class({
         cc.log("onLoad");
         this.Main.active = true;
         this.GamePlay.active = false;
-        this.init();
     },
 
     start()
@@ -25,13 +24,18 @@ cc.Class({
     clickBtn(sender,num)
     {
         cc.log("click button:" + num);
-        this.Main.active = false;
-        this.GamePlay.active = true;
-        this.numItem = num;//行列
         if (num == "return")
         {
             this.Main.active = true;
             this.GamePlay.active = false;
+            this.cleanItem();
+        }
+        else
+        {
+            this.Main.active = false;
+            this.GamePlay.active = true;
+            this.numItem = parseInt(num);//行列
+            this.init();
         }
     },
 
@@ -63,6 +67,11 @@ cc.Class({
         this.itemParent.width = this.itemParentW;
         this.itemParent.height = this.itemParentW;
         this.addItem();
+    },
+
+    cleanItem: function ()
+    {
+        this.itemParent.removeAllChildren();
     }
     // update (dt) {},
 });
