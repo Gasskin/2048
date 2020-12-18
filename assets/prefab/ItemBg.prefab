@@ -111,7 +111,7 @@
       "__id__": 1
     },
     "asset": {
-      "__id__": 0
+      "__uuid__": "0744f7ea-b4bf-43d3-ab96-05d1b503a46d"
     },
     "fileId": "",
     "sync": false
