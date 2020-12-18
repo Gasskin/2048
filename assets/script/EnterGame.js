@@ -28,7 +28,7 @@ cc.Class({
         {
             this.Main.active = true;
             this.GamePlay.active = false;
-            this.cleanItem();
+            this.   cleanItem();
         }
         else
         {
