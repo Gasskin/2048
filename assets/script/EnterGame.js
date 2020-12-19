@@ -11,13 +11,10 @@ cc.Class({
     },
 
     onLoad() {
-        cc.log("onLoad");
         this.Main.active = true;
         this.GamePlay.active = false;
-    },
-
-    start() {
-        cc.log("onStart");
+        this.CurGameType = 0;//0:Read，1：Play，2：Over
+        this.bindTouchEvent();
     },
 
     clickBtn(sender, num) {
@@ -25,11 +22,13 @@ cc.Class({
         if (num == "return") {
             this.Main.active = true;
             this.GamePlay.active = false;
+            this.CurGameType = 0;
             this.cleanItem();
         }
         else {
             this.Main.active = false;
             this.GamePlay.active = true;
+            this.CurGameType = 1;
             this.numItem = parseInt(num);//行列
             this.init();
         }
@@ -59,7 +58,7 @@ cc.Class({
                     node.width = this.itemW;
                     node.height = this.itemW;
                     node.x = posStart.x + (node.width + 5) * i;
-                    node.y = posStart.y + (node.height + 5) * (this.numItem-1-j);
+                    node.y = posStart.y + (node.height + 5) * (this.numItem - 1 - j);
                 }
             }
         }
@@ -97,6 +96,57 @@ cc.Class({
 
     cleanItem: function () {
         this.itemParent.removeAllChildren();
+    },
+
+    bindTouchEvent: function () {
+        this.node.on(
+            "touchstart",
+            function (event) {
+                if (this.CurGameType == 1) {
+                    this.pos_start=event.getLocation();
+                }
+            },
+            this
+        );
+
+        this.node.on(
+            "touchmove",
+            function (event) {
+                if (this.CurGameType == 1) {
+                    cc.log("move");
+                }
+            },
+            this
+        );
+
+        this.node.on(
+            "touchend",
+            function (event) {
+                if (this.CurGameType == 1) {
+                    this.pos_end=event.getLocation();
+                    var pos_move_x=this.pos_end.x-this.pos_start.x;
+                    var pos_move_y=this.pos_end.y-this.pos_start.y;
+                    if(Math.abs(pos_move_x)>Math.abs(pos_move_y)){
+                        if(pos_move_x>0){
+                            cc.log("右");
+                        }
+                        else{
+                            cc.log("左");
+                        }
+                    }
+                    else{
+                        if(pos_move_y>0){
+                            cc.log("上");
+                        }
+                        else{
+                            cc.log("下");
+                        }
+                    }
+                }
+            },
+            this
+        );
     }
+
     // update (dt) {},
 });
