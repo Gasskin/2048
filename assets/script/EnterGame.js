@@ -14,6 +14,7 @@ cc.Class({
         this.Main.active = true;
         this.GamePlay.active = false;
         this.CurGameType = 0;//0:Read，1：Play，2：Over
+        this.Full = false;
         this.bindTouchEvent();
     },
 
@@ -49,18 +50,31 @@ cc.Class({
     },
 
     addItem: function () {
-        var posStart = cc.v2(-this.itemParentW / 2 + this.itemW / 2 + this.interval, -this.itemParentW / 2 + this.itemW / 2 + this.interval);
-        for (var i = 0; i < this.numItem; i++) {
-            for (var j = 0; j < this.numItem; j++) {
-                if (this.array[i][j] != 0) {
-                    var node = cc.instantiate(this.pre_item);
-                    node.parent = this.itemParent;
-                    node.width = this.itemW;
-                    node.height = this.itemW;
-                    node.x = posStart.x + (node.width + 5) * i;
-                    node.y = posStart.y + (node.height + 5) * (this.numItem - 1 - j);
+        //如果还没满
+        if (!this.Full) {
+            //添加元素
+            var posStart = cc.v2(-this.itemParentW / 2 + this.itemW / 2 + this.interval, -this.itemParentW / 2 + this.itemW / 2 + this.interval);
+            for (var i = 0; i < this.numItem; i++) {
+                for (var j = 0; j < this.numItem; j++) {
+                    if (this.array[i][j] != 0) {
+                        var node = cc.instantiate(this.pre_item);
+                        node.parent = this.itemParent;
+                        node.width = this.itemW;
+                        node.height = this.itemW;
+                        node.x = posStart.x + (node.width + 5) * j;
+                        node.y = posStart.y + (node.height + 5) * (this.numItem-1-i);
+                    }
                 }
             }
+            //添加完之后检查是否满了
+            for (let i = 0; i < this.numItem; i++) {
+                for (let j = 0; j < this.numItem; j++) {
+                    if (this.array[i][j] == 0) {
+                        return;
+                    }
+                }
+            }
+            this.Full=true;
         }
     },
 
@@ -89,8 +103,9 @@ cc.Class({
             }
         }
 
-        this.array[0][0] = 2;
-        this.array[1][1] = 2;
+        var x=parseInt(Math.random()*this.numItem);
+        var y=parseInt(Math.random()*this.numItem);
+        this.array[x][y]=2;
         cc.log(this.array);
     },
 
@@ -144,8 +159,22 @@ cc.Class({
                                 cc.log("下");
                             }
                         }
+                        if (!this.Full) {
+                            while (1) {
+                                var x = parseInt(Math.random() * this.numItem);
+                                var y = parseInt(Math.random() * this.numItem);
+                                if (this.array[x][y] == 0) {
+                                    this.array[x][y] = 2;
+                                    this.addItem();
+                                    break;
+                                }
+                            }
+                        }
+                        else{
+                            cc.log("数组已满");
+                        }
+                        
                     }
-
                 }
             },
             this
