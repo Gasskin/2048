@@ -103,7 +103,7 @@ cc.Class({
             "touchstart",
             function (event) {
                 if (this.CurGameType == 1) {
-                    this.pos_start=event.getLocation();
+                    this.pos_start = event.getLocation();
                 }
             },
             this
@@ -123,25 +123,29 @@ cc.Class({
             "touchend",
             function (event) {
                 if (this.CurGameType == 1) {
-                    this.pos_end=event.getLocation();
-                    var pos_move_x=this.pos_end.x-this.pos_start.x;
-                    var pos_move_y=this.pos_end.y-this.pos_start.y;
-                    if(Math.abs(pos_move_x)>Math.abs(pos_move_y)){
-                        if(pos_move_x>0){
-                            cc.log("右");
+                    this.pos_end = event.getLocation();
+                    var pos_move_x = this.pos_end.x - this.pos_start.x;
+                    var pos_move_y = this.pos_end.y - this.pos_start.y;
+
+                    if (Math.abs(pos_move_x) > 50 || Math.abs(pos_move_y) > 50) {
+                        if (Math.abs(pos_move_x) > Math.abs(pos_move_y)) {
+                            if (pos_move_x > 0) {
+                                cc.log("右");
+                            }
+                            else {
+                                cc.log("左");
+                            }
                         }
-                        else{
-                            cc.log("左");
+                        else {
+                            if (pos_move_y > 0) {
+                                cc.log("上");
+                            }
+                            else {
+                                cc.log("下");
+                            }
                         }
                     }
-                    else{
-                        if(pos_move_y>0){
-                            cc.log("上");
-                        }
-                        else{
-                            cc.log("下");
-                        }
-                    }
+
                 }
             },
             this
