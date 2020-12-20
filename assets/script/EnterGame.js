@@ -54,9 +54,16 @@ cc.Class({
                 item.x = posStart.x + (item.width + 5) * j;
                 item.y = posStart.y + (item.height + 5) * (this.numItem - 1 - i);
                 item.parent = this.itemParent;
+                item.scale=0;
+                item.runAction(cc.scaleTo(0.15,1));
+                item.color = new cc.Color(238, 228, 218);
+                
                 var num = item.getChildByName("num");
                 var numLable = num.getComponent(cc.Label);
                 numLable.string = this.array[i][j].toString();
+
+                
+
                 this.items.push(item);
             }
             if(!this.canMove()){
@@ -140,6 +147,39 @@ cc.Class({
                     var num = node.getChildByName("num");
                     var numLable = num.getComponent(cc.Label);
                     numLable.string = this.array[i][j].toString();
+
+                    switch (this.array[i][j]) {
+                        case 2:
+                            node.color = new cc.Color(238, 228, 218);
+                            break;
+                        case 4:
+                            node.color = new cc.Color(237, 224, 200);
+                            break;
+                        case 8:
+                            node.color = new cc.Color(242, 177, 121);
+                            break;
+                        case 16:
+                            node.color = new cc.Color(245, 149, 99);
+                            break;
+                        case 32:
+                            node.color = new cc.Color(246, 124, 95);
+                            break;
+                        case 64:
+                            node.color = new cc.Color(246, 94, 59);
+                            break;
+                        case 128:
+                            node.color = new cc.Color(237, 206, 115);
+                            break;
+                        case 256:
+                            node.color = new cc.Color(236, 201, 97);
+                            break;
+                        case 512:
+                            node.color = new cc.Color(238, 199, 80);
+                            break;
+                        case 1024:
+                            node.color = new cc.Color(239, 196, 65);
+                            break;
+                    }
                     this.items.push(node);
                 }
             }
