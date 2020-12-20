@@ -8,6 +8,7 @@ cc.Class({
         pre_item_bg: cc.Prefab,
         pre_item: cc.Prefab,
         itemParent: cc.Node,
+        score:cc.Label,
     },
 
     onLoad() {
@@ -37,16 +38,33 @@ cc.Class({
         }
     },
 
-    createItem: function (parentNode) {
-        let item = null;
-        if (this.itemPool.size() > 0) { 
-            item = this.itemPool.get();
-        } 
-        else { 
-            item = cc.instantiate(this.pre_item);
+    createItem: function (i,j) {
+        if(!this.Full){
+            let item = null;
+            if (this.array[i][j] != 0) {
+                if (this.itemPool.size() > 0) {
+                    item = this.itemPool.get();
+                }
+                else {
+                    item = cc.instantiate(this.pre_item);
+                }
+                var posStart = cc.v2(-this.itemParentW / 2 + this.itemW / 2 + this.interval, -this.itemParentW / 2 + this.itemW / 2 + this.interval);
+                item.width = this.itemW;
+                item.height = this.itemW;
+                item.x = posStart.x + (item.width + 5) * j;
+                item.y = posStart.y + (item.height + 5) * (this.numItem - 1 - i);
+                item.parent = this.itemParent;
+                var num = item.getChildByName("num");
+                var numLable = num.getComponent(cc.Label);
+                numLable.string = this.array[i][j].toString();
+                this.items.push(item);
+            }
+            if(!this.canMove()){
+                cc.log("游戏结束!!!");
+                this.Full=true;
+            }
         }
-        item.parent = parentNode; 
-        return item;
+        
     },
 
     onItemKilled: function (item) {
@@ -71,6 +89,9 @@ cc.Class({
         for (let i = 0; i < this.array.length; i++) {
             for (let j = 0; j < this.array.length; j++) {
                 var cur=this.array[i][j];
+                if(cur==0){
+                    return true;
+                }
                 if(i>0){
                     if(cur==this.array[i-1][j]){
                         return true;
@@ -96,43 +117,34 @@ cc.Class({
         return false;
     },
 
-    addItem: function () {
+    refreshItem: function () {
         this.cleanItem(this.items);
-        this.items.length=0;
-        //如果还没满
-        if (!this.Full) {
-            //添加元素
-            var posStart = cc.v2(-this.itemParentW / 2 + this.itemW / 2 + this.interval, -this.itemParentW / 2 + this.itemW / 2 + this.interval);
-            for (var i = 0; i < this.numItem; i++) {
-                for (var j = 0; j < this.numItem; j++) {
-                    if (this.array[i][j] != 0) {
-                        var node = this.createItem(this.itemParent);
-                        node.width = this.itemW;
-                        node.height = this.itemW;
-                        node.x = posStart.x + (node.width + 5) * j;
-                        node.y = posStart.y + (node.height + 5) * (this.numItem - 1 - i);
-                        var num=node.getChildByName("num");
-                        var numLable=num.getComponent(cc.Label);
-                        numLable.string=this.array[i][j].toString();
-                        this.items.push(node);
+        this.items.length = 0;
+
+        var posStart = cc.v2(-this.itemParentW / 2 + this.itemW / 2 + this.interval, -this.itemParentW / 2 + this.itemW / 2 + this.interval);
+        for (var i = 0; i < this.numItem; i++) {
+            for (var j = 0; j < this.numItem; j++) {
+                if (this.array[i][j] != 0) {
+                    let node = null;
+                    if (this.itemPool.size() > 0) {
+                        node = this.itemPool.get();
                     }
+                    else {
+                        node = cc.instantiate(this.pre_item);
+                    }
+                    node.width = this.itemW;
+                    node.height = this.itemW;
+                    node.x = posStart.x + (node.width + 5) * j;
+                    node.y = posStart.y + (node.height + 5) * (this.numItem - 1 - i);
+                    node.parent = this.itemParent;
+                    var num = node.getChildByName("num");
+                    var numLable = num.getComponent(cc.Label);
+                    numLable.string = this.array[i][j].toString();
+                    this.items.push(node);
                 }
             }
-            cc.log(this.array);
-            //添加完之后检查是否满了
-            for (let i = 0; i < this.numItem; i++) {
-                for (let j = 0; j < this.numItem; j++) {
-                    if (this.array[i][j] == 0) {
-                        return;
-                    }
-                    else if(this.canMove()){
-                        return;
-                    }
-                }
-            }
-            this.Full = true;
-            cc.log("游戏结束！！！");
         }
+           
     },
 
     init: function () {
@@ -143,10 +155,10 @@ cc.Class({
         this.itemParent.width = this.itemParentW;
         this.itemParent.height = this.itemParentW;
         this.items = new Array();
+        this.cur_scores=0;
 
-        this.initArray();
         this.addItemBg();
-        this.addItem();
+        this.initArray();
     },
 
     initArray: function () {
@@ -164,6 +176,7 @@ cc.Class({
         var x = parseInt(Math.random() * this.numItem);
         var y = parseInt(Math.random() * this.numItem);
         this.array[x][y] = 2;
+        this.createItem(x,y);
     },
 
     cleanItem:function(items){
@@ -230,14 +243,16 @@ cc.Class({
                                 var x = parseInt(Math.random() * this.numItem);
                                 var y = parseInt(Math.random() * this.numItem);
                                 if (this.array[x][y] == 0) {
+                                    this.refreshItem();
                                     this.array[x][y] = 2;
-                                    this.addItem();
+                                    this.createItem(x,y);
+                                    cc.log(this.array);
                                     break;
                                 }
                             }
                         }
                         else {
-                            cc.log("数组已满");
+
                         }
 
                     }
@@ -265,7 +280,6 @@ cc.Class({
     },
 
     _moveT:function(){
-        cc.log("top");
         //列
         for (let j = 0; j < this.numItem; j++) {
             //行，从第二行开始
@@ -286,6 +300,8 @@ cc.Class({
                         //如果上一行不是0，考虑是否可以合并
                         else{
                             if(this.array[row][j]==this.array[row-1][j]){
+                                this.cur_scores+=this.array[row][j];
+                                this.score.string=this.cur_scores;
                                 this.array[row][j]=0;
                                 this.array[row-1][j]*=2;
                             }
@@ -303,7 +319,6 @@ cc.Class({
     },
 
     _moveB:function(){
-        cc.log("bottom");
         var i,j;
         //列
         for (j = 0; j <this.numItem; j++) {
@@ -325,6 +340,8 @@ cc.Class({
                         //如果下一行不是0，考虑是否可以合并
                         else{
                             if(this.array[row][j]==this.array[row+1][j]){
+                                this.cur_scores+=this.array[row][j];
+                                this.score.string=this.cur_scores;
                                 this.array[row][j]=0;
                                 this.array[row+1][j]*=2;
                             }
@@ -342,7 +359,6 @@ cc.Class({
     },
 
     _moveL:function(){
-        cc.log("left");
         //行
         for(let i=0;i<this.numItem;i++){
             //列，第二列开始
@@ -363,6 +379,8 @@ cc.Class({
                         //如果前一列不是0，考虑是否可以合并
                         else{
                             if(this.array[i][col]==this.array[i][col-1]){
+                                this.cur_scores+=this.array[i][col];
+                                this.score.string=this.cur_scores;
                                 this.array[i][col]=0;
                                 this.array[i][col-1]*=2;
                             }
@@ -380,7 +398,6 @@ cc.Class({
     },
 
     _moveR:function(){
-        cc.log("right");
         //行
         for(let i=0;i<this.numItem;i++){
             //列，第n-2列开始
@@ -401,6 +418,8 @@ cc.Class({
                         //如果前一列不是0，考虑是否可以合并
                         else{
                             if(this.array[i][col]==this.array[i][col+1]){
+                                this.cur_scores+=this.array[i][col];
+                                this.score.string=this.cur_scores;
                                 this.array[i][col]=0;
                                 this.array[i][col+1]*=2;
                             }
