@@ -19,13 +19,14 @@ cc.Class({
         this.bindTouchEvent();
     },
 
-    clickBtn(sender, num) {
+    clickBtn:function(sender, num) {
         if (num == "return") {
             this.Main.active = true;
             this.GamePlay.active = false;
             this.CurGameType = 0;
             this.cleanItemBg();
             this.cleanItem(this.items);
+            this.Full=false;
         }
         else {
             this.Main.active = false;
