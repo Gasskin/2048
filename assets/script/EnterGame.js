@@ -66,6 +66,35 @@ cc.Class({
         }
     },
 
+    canMove:function(){
+        for (let i = 0; i < this.array.length; i++) {
+            for (let j = 0; j < this.array.length; j++) {
+                var cur=this.array[i][j];
+                if(i>0){
+                    if(cur==this.array[i-1][j]){
+                        return true;
+                    }
+                }
+                else if(i<this.numItem-1){
+                    if(cur==this.array[i+1][j]){
+                        return true;
+                    }
+                }
+                else if(j>0){
+                    if(cur==this.array[i][j-1]){
+                        return true;
+                    }
+                }
+                else if(j<this.numItem-1){
+                    if(cur==this.array[i][j+1]){
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    },
+
     addItem: function () {
         this.cleanItem(this.items);
         this.items.length=0;
@@ -81,6 +110,9 @@ cc.Class({
                         node.height = this.itemW;
                         node.x = posStart.x + (node.width + 5) * j;
                         node.y = posStart.y + (node.height + 5) * (this.numItem - 1 - i);
+                        var num=node.getChildByName("num");
+                        var numLable=num.getComponent(cc.Label);
+                        numLable.string=this.array[i][j].toString();
                         this.items.push(node);
                     }
                 }
@@ -92,9 +124,13 @@ cc.Class({
                     if (this.array[i][j] == 0) {
                         return;
                     }
+                    else if(this.canMove()){
+                        return;
+                    }
                 }
             }
             this.Full = true;
+            cc.log("游戏结束！！！");
         }
     },
 
@@ -158,7 +194,6 @@ cc.Class({
             "touchmove",
             function (event) {
                 if (this.CurGameType == 1) {
-                    cc.log("move");
                 }
             },
             this
@@ -175,18 +210,18 @@ cc.Class({
                     if (Math.abs(pos_move_x) > 50 || Math.abs(pos_move_y) > 50) {
                         if (Math.abs(pos_move_x) > Math.abs(pos_move_y)) {
                             if (pos_move_x > 0) {
-                                cc.log("右");
+                                this.moveItem("RIGHT");
                             }
                             else {
-                                cc.log("左");
+                                this.moveItem("LEFT");
                             }
                         }
                         else {
                             if (pos_move_y > 0) {
-                                cc.log("上");
+                                this.moveItem("TOP");
                             }
                             else {
-                                cc.log("下");
+                                this.moveItem("BOTTOM");
                             }
                         }
                         if (!this.Full) {
@@ -209,7 +244,177 @@ cc.Class({
             },
             this
         );
-    }
+    },
+
+    moveItem:function(direction){
+        switch(direction){
+            case "TOP":
+                this._moveT();
+                break;
+            case "BOTTOM":
+                this._moveB();
+                break;
+            case "LEFT":
+                this._moveL();
+                break;
+            case "RIGHT":
+                this._moveR();
+                break;
+        }
+    },
+
+    _moveT:function(){
+        cc.log("top");
+        //列
+        for (let j = 0; j < this.numItem; j++) {
+            //行，从第二行开始
+            for(let i=1;i<this.numItem;i++){
+                var row=i;
+                while(1){
+                    //是0直接返回
+                    if(this.array[row][j]==0){
+                        break;
+                    }
+                    else{
+                        //如果上一行是0，那交换
+                        if(this.array[row-1][j]==0){
+                            this.array[row-1][j]=this.array[row][j];
+                            this.array[row][j]=0;
+                            row--;
+                        }
+                        //如果上一行不是0，考虑是否可以合并
+                        else{
+                            if(this.array[row][j]==this.array[row-1][j]){
+                                this.array[row][j]=0;
+                                this.array[row-1][j]*=2;
+                            }
+                            //不管能不能合并，此次移动都结束了
+                            break;
+                        }
+                        //如果row超过边界，则结束
+                        if(row<=0){
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    },
+
+    _moveB:function(){
+        cc.log("bottom");
+        var i,j;
+        //列
+        for (j = 0; j <this.numItem; j++) {
+            //行，从n-2行开始
+            for (i = this.numItem-2;i>=0;i--) {
+                var row=i;
+                while(1){
+                    //是0直接返回
+                    if(this.array[row][j]==0){
+                        break;
+                    }
+                    else{
+                        //如果下一行是0，那交换
+                        if(this.array[row+1][j]==0){
+                            this.array[row+1][j]=this.array[row][j];
+                            this.array[row][j]=0;
+                            row++;
+                        }
+                        //如果下一行不是0，考虑是否可以合并
+                        else{
+                            if(this.array[row][j]==this.array[row+1][j]){
+                                this.array[row][j]=0;
+                                this.array[row+1][j]*=2;
+                            }
+                            //不管能不能合并，此次移动都结束了
+                            break;
+                        }
+                        //如果row超过边界，则结束
+                        if(row>=this.numItem-1){
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    },
+
+    _moveL:function(){
+        cc.log("left");
+        //行
+        for(let i=0;i<this.numItem;i++){
+            //列，第二列开始
+            for(let j=1;j<this.numItem;j++){
+                var col=j;
+                while(1){
+                    //是0直接返回
+                    if(this.array[i][col]==0){
+                        break;
+                    }
+                    else{
+                        //如果前一列是0，那交换
+                        if(this.array[i][col-1]==0){
+                            this.array[i][col-1]=this.array[i][col];
+                            this.array[i][col]=0;
+                            col--;
+                        }
+                        //如果前一列不是0，考虑是否可以合并
+                        else{
+                            if(this.array[i][col]==this.array[i][col-1]){
+                                this.array[i][col]=0;
+                                this.array[i][col-1]*=2;
+                            }
+                            //不管能不能合并，此次移动都结束了
+                            break;
+                        }
+                        //如果row超过边界，则结束
+                        if(col<=0){
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    },
+
+    _moveR:function(){
+        cc.log("right");
+        //行
+        for(let i=0;i<this.numItem;i++){
+            //列，第n-2列开始
+            for(let j=this.numItem-2;j>=0;j--){
+                var col=j;
+                while(1){
+                    //是0直接返回
+                    if(this.array[i][col]==0){
+                        break;
+                    }
+                    else{
+                        //如果后一列是0，那交换
+                        if(this.array[i][col+1]==0){
+                            this.array[i][col+1]=this.array[i][col];
+                            this.array[i][col]=0;
+                            col++;
+                        }
+                        //如果前一列不是0，考虑是否可以合并
+                        else{
+                            if(this.array[i][col]==this.array[i][col+1]){
+                                this.array[i][col]=0;
+                                this.array[i][col+1]*=2;
+                            }
+                            //不管能不能合并，此次移动都结束了
+                            break;
+                        }
+                        //如果row超过边界，则结束
+                        if(col>=this.numItem){
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    },
 
     // update (dt) {},
 });
