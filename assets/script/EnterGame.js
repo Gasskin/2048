@@ -11,6 +11,7 @@ cc.Class({
     },
 
     onLoad() {
+        this.itemPool = new cc.NodePool();
         this.Main.active = true;
         this.GamePlay.active = false;
         this.CurGameType = 0;//0:Read，1：Play，2：Over
@@ -19,12 +20,12 @@ cc.Class({
     },
 
     clickBtn(sender, num) {
-        cc.log("click button:" + num);
         if (num == "return") {
             this.Main.active = true;
             this.GamePlay.active = false;
             this.CurGameType = 0;
-            this.cleanItem();
+            this.cleanItemBg();
+            this.cleanItem(this.items);
         }
         else {
             this.Main.active = false;
@@ -33,6 +34,22 @@ cc.Class({
             this.numItem = parseInt(num);//行列
             this.init();
         }
+    },
+
+    createItem: function (parentNode) {
+        let item = null;
+        if (this.itemPool.size() > 0) { 
+            item = this.itemPool.get();
+        } 
+        else { 
+            item = cc.instantiate(this.pre_item);
+        }
+        item.parent = parentNode; 
+        return item;
+    },
+
+    onItemKilled: function (item) {
+        this.itemPool.put(item); 
     },
 
     addItemBg: function () {
@@ -50,6 +67,8 @@ cc.Class({
     },
 
     addItem: function () {
+        this.cleanItem(this.items);
+        this.items.length=0;
         //如果还没满
         if (!this.Full) {
             //添加元素
@@ -57,15 +76,16 @@ cc.Class({
             for (var i = 0; i < this.numItem; i++) {
                 for (var j = 0; j < this.numItem; j++) {
                     if (this.array[i][j] != 0) {
-                        var node = cc.instantiate(this.pre_item);
-                        node.parent = this.itemParent;
+                        var node = this.createItem(this.itemParent);
                         node.width = this.itemW;
                         node.height = this.itemW;
                         node.x = posStart.x + (node.width + 5) * j;
-                        node.y = posStart.y + (node.height + 5) * (this.numItem-1-i);
+                        node.y = posStart.y + (node.height + 5) * (this.numItem - 1 - i);
+                        this.items.push(node);
                     }
                 }
             }
+            cc.log(this.array);
             //添加完之后检查是否满了
             for (let i = 0; i < this.numItem; i++) {
                 for (let j = 0; j < this.numItem; j++) {
@@ -74,7 +94,7 @@ cc.Class({
                     }
                 }
             }
-            this.Full=true;
+            this.Full = true;
         }
     },
 
@@ -85,6 +105,7 @@ cc.Class({
         this.itemParentW = this.numItem * this.itemW + (this.numItem + 1) * this.interval;//背景大小    
         this.itemParent.width = this.itemParentW;
         this.itemParent.height = this.itemParentW;
+        this.items = new Array();
 
         this.initArray();
         this.addItemBg();
@@ -103,13 +124,22 @@ cc.Class({
             }
         }
 
-        var x=parseInt(Math.random()*this.numItem);
-        var y=parseInt(Math.random()*this.numItem);
-        this.array[x][y]=2;
-        cc.log(this.array);
+        var x = parseInt(Math.random() * this.numItem);
+        var y = parseInt(Math.random() * this.numItem);
+        this.array[x][y] = 2;
     },
 
-    cleanItem: function () {
+    cleanItem:function(items){
+        if(items.length<=0){
+            return;
+        }
+        for (let i = 0; i < this.items.length; i++) {
+            //this.itemParent.removeChild(items[i]);
+            this.onItemKilled(items[i]);
+        }
+    },
+
+    cleanItemBg: function () {
         this.itemParent.removeAllChildren();
     },
 
@@ -170,10 +200,10 @@ cc.Class({
                                 }
                             }
                         }
-                        else{
+                        else {
                             cc.log("数组已满");
                         }
-                        
+
                     }
                 }
             },
