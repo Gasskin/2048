@@ -11,6 +11,7 @@ cc.Class({
         itemParent: cc.Node,
         score:cc.Label,
         dis_score:cc.Label,
+        max_score:cc.Label,
     },
 
     onLoad() {
@@ -21,7 +22,16 @@ cc.Class({
         this.CurGameType = 0;//0:Read，1：Play，2：Over
         this.Full = false;
         this.cur_scores=0;
+        cc.sys.localStorage.setItem("max_score",0);
         this.bindTouchEvent();
+    },
+
+    storeMaxScore:function(){
+        var max_score = cc.sys.localStorage.getItem("max_score");
+        cc.log("cur:",this.cur_scores,"max:",max_score);
+        if(this.cur_scores>max_score){
+            cc.sys.localStorage.setItem("max_score",this.cur_scores);
+        }
     },
 
     clickBtn:function(sender, num) {
@@ -32,26 +42,39 @@ cc.Class({
             this.CurGameType = 0;
             this.cleanItemBg();
             this.cleanItem(this.items);
+            this.storeMaxScore();
+            this.cur_scores=0;
             this.Full=false;
         }
         else if(num=="replay"){
+            this.storeMaxScore();
+            var score=cc.sys.localStorage.getItem("max_score");
+            this.max_score.string=score;
+
             this.cleanItem(this.items);
             this.Full=false;
 
             this.Main.active = false;
             this.GamePlay.active = true;
             this.GameOver.active=false;
-
+            this.cur_scores=0;
+            this.score.string=this.cur_scores;
             this.CurGameType=1;
+
             this.init();
         }
         else {
             this.Main.active = false;
             this.GamePlay.active = true;
             this.GameOver.active=false;
+            
+            this.CurGameType = 1;
+
+            var score=cc.sys.localStorage.getItem("max_score");
+            this.max_score.string=score;
+            
             this.cur_scores=0;
             this.score.string=this.cur_scores;
-            this.CurGameType = 1;
             this.numItem = parseInt(num);//行列
             this.init();
         }
@@ -83,12 +106,13 @@ cc.Class({
 
                 this.items.push(item);
             }
-            cc.log(this.array);
-            cc.log("canMove:",this.canMove());
+            //cc.log(this.array);
+            //cc.log("canMove:",this.canMove());
             if(!this.canMove()){
                 //cc.log("游戏结束!!!");
                 this.Full=true;
                 this.CurGameType=2;
+                this.storeMaxScore();
                 this.scheduleOnce(function(){
                     this.dis_score.string=this.cur_scores;
                     this.GameOver.active=true;
