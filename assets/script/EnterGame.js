@@ -5,33 +5,52 @@ cc.Class({
     {
         GamePlay: cc.Node,
         Main: cc.Node,
+        GameOver:cc.Node,
         pre_item_bg: cc.Prefab,
         pre_item: cc.Prefab,
         itemParent: cc.Node,
         score:cc.Label,
+        dis_score:cc.Label,
     },
 
     onLoad() {
         this.itemPool = new cc.NodePool();
         this.Main.active = true;
         this.GamePlay.active = false;
+        this.GameOver.active=false;
         this.CurGameType = 0;//0:Read，1：Play，2：Over
         this.Full = false;
+        this.cur_scores=0;
         this.bindTouchEvent();
     },
 
     clickBtn:function(sender, num) {
-        if (num == "return") {
+        if ((num == "return"&&this.CurGameType!=2)||num=="home") {
             this.Main.active = true;
             this.GamePlay.active = false;
+            this.GameOver.active=false;
             this.CurGameType = 0;
             this.cleanItemBg();
             this.cleanItem(this.items);
             this.Full=false;
         }
+        else if(num=="replay"){
+            this.cleanItem(this.items);
+            this.Full=false;
+
+            this.Main.active = false;
+            this.GamePlay.active = true;
+            this.GameOver.active=false;
+
+            this.CurGameType=1;
+            this.init();
+        }
         else {
             this.Main.active = false;
             this.GamePlay.active = true;
+            this.GameOver.active=false;
+            this.cur_scores=0;
+            this.score.string=this.cur_scores;
             this.CurGameType = 1;
             this.numItem = parseInt(num);//行列
             this.init();
@@ -62,16 +81,26 @@ cc.Class({
                 var numLable = num.getComponent(cc.Label);
                 numLable.string = this.array[i][j].toString();
 
-                
-
                 this.items.push(item);
             }
+            cc.log(this.array);
+            cc.log("canMove:",this.canMove());
             if(!this.canMove()){
-                cc.log("游戏结束!!!");
+                //cc.log("游戏结束!!!");
                 this.Full=true;
+                this.CurGameType=2;
+                this.scheduleOnce(function(){
+                    this.dis_score.string=this.cur_scores;
+                    this.GameOver.active=true;
+                },1);
             }
+            
         }
         
+    },
+
+    rePlay:function(){
+        cc.log("replay");
     },
 
     onItemKilled: function (item) {
@@ -93,32 +122,36 @@ cc.Class({
     },
 
     canMove:function(){
-        for (let i = 0; i < this.array.length; i++) {
-            for (let j = 0; j < this.array.length; j++) {
-                var cur=this.array[i][j];
-                if(cur==0){
+        //先看看有没有空位，也就是0
+        for (let i = 0; i < this.numItem; i++) {
+            for (let j = 0; j < this.numItem; j++){
+                if(this.array[i][j]==0){
                     return true;
                 }
-                if(i>0){
-                    if(cur==this.array[i-1][j]){
-                        return true;
-                    }
+            }
+        }
+        //判断前n-1行和n-1列是否有可以合并的元素
+        for (let i = 0; i < this.numItem-1; i++) {
+            for (let j = 0; j < this.numItem-1; j++) {
+                var cur=this.array[i][j];
+                if(cur==this.array[i][j+1]){
+                    return true;
                 }
-                else if(i<this.numItem-1){
-                    if(cur==this.array[i+1][j]){
-                        return true;
-                    }
+                else if(cur==this.array[i+1][j]){
+                    return true;
                 }
-                else if(j>0){
-                    if(cur==this.array[i][j-1]){
-                        return true;
-                    }
-                }
-                else if(j<this.numItem-1){
-                    if(cur==this.array[i][j+1]){
-                        return true;
-                    }
-                }
+            }
+        }
+        //单独判断最后一行
+        for(let j=0;j<this.numItem-1;j++){
+            if(this.array[this.numItem-1][j]==this.array[this.numItem-1][j+1]){
+                return true;
+            }
+        }
+        //单独判断最后一列
+        for(let i=0;i<this.array.length-1;i++){
+            if(this.array[i][this.numItem-1]==this.array[i+1][this.numItem-1]){
+                return true;
             }
         }
         return false;
@@ -224,7 +257,6 @@ cc.Class({
             return;
         }
         for (let i = 0; i < this.items.length; i++) {
-            //this.itemParent.removeChild(items[i]);
             this.onItemKilled(items[i]);
         }
     },
@@ -286,7 +318,6 @@ cc.Class({
                                     this.refreshItem();
                                     this.array[x][y] = 2;
                                     this.createItem(x,y);
-                                    cc.log(this.array);
                                     break;
                                 }
                             }
